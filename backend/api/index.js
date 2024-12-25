@@ -3,8 +3,8 @@ import fetch from 'node-fetch';
 import cors from 'cors'
 import fs from 'fs'
 import * as cheerio from 'cheerio';
-import {LIFE_EVENTS} from "./src/constants.js"
-import {analyzeAstrologyData} from './src/predictor.js'
+import {LIFE_EVENTS} from "../src/constants.js"
+import {analyzeAstrologyData} from '../src/predictor.js'
 
 
 const app = express();
