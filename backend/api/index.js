@@ -6,6 +6,8 @@ import * as cheerio from 'cheerio';
 import {LIFE_EVENTS} from "../src/constants.js"
 import {analyzeAstrologyData} from '../src/predictor.js'
 
+let cookieValue = "_ga=GA1.2.894223713.1727053476; _gid=GA1.2.691976010.1735032881; __RequestVerificationToken=DqwMOyy4qh1x0_bvfSakbhknAL3JycsdQU_Fj1ZguGcS3bAtO1qjgdR_SMOn_d1YkNxXDAScJ-sJ2CewUJtWmxnYREs1; _kundli_soft_=Voiar9J74DcfE0qR6f1ThEIrqRvz0XAjHhGoGxhC5FdDvr6TRQCVLAs8fYC4Nc8sJ-noZVQpCNlwEZyOGIHhIA1dFutUNfFNbs93FyuwG1t36NNa6_qDAwXuQwxkDMGY9GD2JpMz08XGpzCQnJGs09pNVz45y3kCnkTiZ5zlkosjXx6vBvzjIBjPwaKYQ7iTByjBGihkMeoApOM9FUFl_hQ9j-0Q6V-c5i8GNQXxm_F8e4bht0UgH-eQVyjZf6XWKgBJUnpq0UYFh3E1_-c3Uq8rtGuH-PjHzcAP76d8VV8O-kq2uQDW2Bf79f6ueYzUpl-vIMATgD57lqh26_DqrlgRtOkc8QoHCdCdqrGOol6MY_m6L42z9u5p57gJHahWbW4T43ytOJHtis6UhVfGwUPx4kLbdE_CU7Z7lT90I6PSN4qI1-ARLjJv52Z00ZK7zFioElhOGiBx78eopAbSops8GasNAVjVOtM3OPn0V5NUhA7g; _gat=1; _ga_19SFKHHPR2=GS1.2.1735112894.5.1.1735112897.0.0.0"
+
 
 const app = express();
 const PORT = process.env.PORT || 8000;
@@ -20,7 +22,6 @@ app.use(cors({
 async function fetchData(formData) {
 
   const body = new URLSearchParams(formData).toString()
-  const cookieValue = fs.readFileSync('./cookie/cookie.json', 'utf-8')
 
   try {
 
@@ -36,7 +37,7 @@ async function fetchData(formData) {
         "sec-fetch-dest": "empty",
         "sec-fetch-mode": "cors",
         "sec-fetch-site": "same-origin",
-        "cookie": JSON.parse(cookieValue).value,
+        "cookie": cookieValue,
         "Referer": "https://www.kundlisoft.com/web",
         "Referrer-Policy": "strict-origin-when-cross-origin"
       },
@@ -136,18 +137,18 @@ app.post('/getData', async (req, res) => {
 
 app.use(express.json())
 
-app.post('/updateCookie', (req, res) => {
-  try {
-    // Writing the request body to the cookie.json file synchronously
-    fs.writeFileSync('./cookie/cookie.json', JSON.stringify(req.body));
-    console.log(req.body)
+// app.post('/updateCookie', (req, res) => {
+//   try {
+//     // Writing the request body to the cookie.json file synchronously
+//     fs.writeFileSync('./cookie/cookie.json', JSON.stringify(req.body));
+//     console.log(req.body)
 
-    res.status(200).send('Cookie updated successfully');
-  } catch (error) {
-    console.error('Error updating cookie:', error);
-    res.status(500).send('Error updating cookie');
-  }
-});
+//     res.status(200).send('Cookie updated successfully');
+//   } catch (error) {
+//     console.error('Error updating cookie:', error);
+//     res.status(500).send('Error updating cookie');
+//   }
+// });
 
 app.get('/', (req,res) => {
   res.status(200).send('Server Running......')
