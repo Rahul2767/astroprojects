@@ -23,51 +23,28 @@ export function analyzeAstrologyData(astrologyData, lifeEvents) {
             modifiedData[fullPath][planet][level] = new Set(); // Use Set to store unique values
 
             const multiplier = ['L1', 'L2', 'L3'].indexOf(level.split('_')[1]);
-
             if (multiplier >= 0) {
               const factor = multiplier + 1;
-            
-              // Iterate over houses once and check both POSITIVE and NEGATIVE events in one pass
-              results[fullPath][planet].positivePoints += houses.filter(house => {
+
+              houses.forEach(house => {
                 let isPositive = false;
                 let isNegative = false;
-            
-                // Check if the house is in the POSITIVE event
+
                 if (events[event].POSITIVE && events[event].POSITIVE.includes(house)) {
-                  modifiedData[fullPath][planet][level].add(`${house}-P`); // Add positive tag
+                  modifiedData[fullPath][planet][level].add(`${house}-P`);
                   isPositive = true;
                 }
-            
-                // Check if the house is in the NEGATIVE event
+
                 if (events[event].NEGATIVE && events[event].NEGATIVE.includes(house)) {
-                  modifiedData[fullPath][planet][level].add(`${house}-N`); // Add negative tag
+                  modifiedData[fullPath][planet][level].add(`${house}-N`);
                   isNegative = true;
                 }
-            
-                // If neither positive nor negative, add the house as is
-                if (!isPositive && !isNegative) {
-                  modifiedData[fullPath][planet][level].add(`${house}`);
-                }
-            
-                // Return true if the house is positive, and false if only negative
-                return isPositive; // We want to count positive points only here
-              }).length * factor;
-            
-              // Iterate again to handle negative points
-              results[fullPath][planet].negativePoints += houses.filter(house => {
-                return events[event].NEGATIVE && events[event].NEGATIVE.includes(house);
-              }).length * factor;
-            }
-            
-          }
 
-          // Determine conclusion based on positive and negative points
-          if (results[fullPath][planet].positivePoints > results[fullPath][planet].negativePoints) {
-            results[fullPath][planet].conclusion = 'Positive';
-          } else if (results[fullPath][planet].positivePoints < results[fullPath][planet].negativePoints) {
-            results[fullPath][planet].conclusion = 'Negative';
-          } else {
-            results[fullPath][planet].conclusion = 'Neutral';
+                if (!isPositive && !isNegative) {
+                  modifiedData[fullPath][planet][level].add(`${house}`); // Neutral
+                }
+              });
+            }
           }
         }
       } else {
@@ -79,17 +56,91 @@ export function analyzeAstrologyData(astrologyData, lifeEvents) {
   // Process the life events and astrology data
   processEvents(lifeEvents);
 
-  // Convert all sets to arrays before returning the result
+  // Convert all sets to arrays and apply 6-8-12 rule
   for (let path in modifiedData) {
     for (let planet in modifiedData[path]) {
+      // Apply the rule before calculating positive/negative points
+      modifiedData[path][planet] = applyRule(modifiedData[path][planet]);
+
+      results[path][planet].positivePoints = 0;
+      results[path][planet].negativePoints = 0;
+
+      // Now, calculate the positive and negative points after applying the rule
       for (let level in modifiedData[path][planet]) {
-        modifiedData[path][planet][level] = Array.from(modifiedData[path][planet][level]); // Convert Set to Array
+        const multiplier = ['L1', 'L2', 'L3'].indexOf(level.split('_')[1]) + 1;
+        
+        Array.from(modifiedData[path][planet][level]).forEach(item => {
+          if (item.endsWith('-P')) {
+            results[path][planet].positivePoints += multiplier; // Positive points
+          }
+          if (item.endsWith('-N')) {
+            results[path][planet].negativePoints += multiplier; // Negative points
+          }
+        });
+
+        // Convert Set to Array for the final modified data
+        modifiedData[path][planet][level] = Array.from(modifiedData[path][planet][level]);
+      }
+
+      // Determine final conclusion based on positive and negative points
+      const { positivePoints, negativePoints } = results[path][planet];
+      if (positivePoints > negativePoints) {
+        results[path][planet].conclusion = 'Positive';
+      } else if (positivePoints < negativePoints) {
+        results[path][planet].conclusion = 'Negative';
+      } else {
+        results[path][planet].conclusion = 'Neutral';
       }
     }
   }
 
-  return {
-    results,
-    modifiedData
-  };
+  return { results, modifiedData };
+}
+
+// Function to apply the 6, 8, 12 rule
+function applyRule(obj) {
+  const targetNumbers = ['6', '8', '12'];
+  let connectedNumbers = new Set();
+
+  // Step 1: Check horizontal connections
+  const objEntries = Object.entries(obj);
+  objEntries.forEach(([key, set]) => {
+    let currentNumbers = new Set([...set].map(item => item.split('-')[0]));
+    let hasTargetNumbers = targetNumbers.filter(num => currentNumbers.has(num));
+    if (hasTargetNumbers.length > 1) {
+      hasTargetNumbers.forEach(num => connectedNumbers.add(num));
+    }
+  });
+
+  // Step 2: Check vertical connections (same index across different sets)
+  for (let i = 0; i < objEntries[0][1].size; i++) {
+    let columnNumbers = new Set();
+    objEntries.forEach(([key, set]) => {
+      let currentSetArray = [...set];
+      if (currentSetArray[i]) {
+        let number = currentSetArray[i].split('-')[0];
+        if (targetNumbers.includes(number)) {
+          columnNumbers.add(number);
+        }
+      }
+    });
+
+    if (columnNumbers.size > 1) {
+      columnNumbers.forEach(num => connectedNumbers.add(num));
+    }
+  }
+
+  // Step 3: Apply transformation based on connection status
+  let newObj = {};
+  objEntries.forEach(([key, set]) => {
+    newObj[key] = new Set([...set].map(item => {
+      let [number, suffix] = item.split('-');
+      if (targetNumbers.includes(number)) {
+        return `${number}-${connectedNumbers.has(number) ? 'N' : 'P'}`;
+      }
+      return item; // Keep unchanged if not 6, 8, or 12
+    }));
+  });
+
+  return newObj;
 }
