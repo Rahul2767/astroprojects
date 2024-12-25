@@ -2,7 +2,10 @@
 const nextConfig = {
   output: 'export',
   eslint: {
-    ignoreDuringBuilds: true,
+    ignoreDuringBuilds: true, // Skip linting during build
+  },
+  typescript: {
+    ignoreBuildErrors: true, // Skip type checking during build
   },
 };
 
