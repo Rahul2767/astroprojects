@@ -20,7 +20,7 @@ export async function fetchKundli(formData: string) {
   try {
     console.log(formData);
 
-    const response = await fetch("http://localhost:8000/getData", {
+    const response = await fetch("https://api-nadianalizer.vercel.app/getData", {
       method: "POST", // Specify the method
       headers: {
         "Content-Type": "application/x-www-form-urlencoded", // Set appropriate content type
