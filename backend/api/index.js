@@ -20,7 +20,7 @@ app.use(cors({
 async function fetchData(formData) {
 
   const body = new URLSearchParams(formData).toString()
-  const cookieValue = fs.readFileSync('cookie.json', 'utf-8')
+  const cookieValue = fs.readFileSync('./cookie/cookie.json', 'utf-8')
 
   try {
 
@@ -139,7 +139,7 @@ app.use(express.json())
 app.post('/updateCookie', (req, res) => {
   try {
     // Writing the request body to the cookie.json file synchronously
-    fs.writeFileSync('cookie.json', JSON.stringify(req.body));
+    fs.writeFileSync('./cookie/cookie.json', JSON.stringify(req.body));
     console.log(req.body)
 
     res.status(200).send('Cookie updated successfully');

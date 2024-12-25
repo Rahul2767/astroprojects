@@ -18,8 +18,6 @@ export function formatKundliData(formData: any, coordinates: { lat: number; lng:
 
 export async function fetchKundli(formData: string) {
   try {
-    console.log(formData);
-
     const response = await fetch("https://api-nadianalizer.vercel.app/getData", {
       method: "POST", // Specify the method
       headers: {
